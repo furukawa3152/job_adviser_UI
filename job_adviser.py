@@ -1,5 +1,7 @@
 import streamlit as st
 from openai import OpenAI
+from docx import Document
+from docx.shared import Pt, RGBColor
 import os
 # OpenAI APIキーを設定
 api_key = ""
@@ -7,10 +9,10 @@ api_key = ""
 st.title("AIにきいてみよう。")
 # ユーザー名の入力フォーム
 user_name = st.text_input("なまえをいれてね:", key="user_name")
-
+school_year = st.selectbox("がくねんをおしえてね", ("1年生", "2年生", "3年生", "4年生", "5年生", "6年生"))
 # セッションステートの初期化
 if 'messages' not in st.session_state:
-    st.session_state.messages = [{"role": "system", "content": f"あなたは小学生に対して様々な職業を教えてくれるAIです。質問に対し、10歳の子供に分かる言葉で回答してください。回答相手の名前は{user_name}です。名前を呼びながら回答してあげてください。"}]
+    st.session_state.messages = [{"role": "system", "content": f"あなたは小学{school_year}に対して様々な職業を教えてくれるAIです。質問に対し、小学{school_year}の子供に分かる言葉で回答してください。回答相手の名前は{user_name}です。名前を呼びながら回答してあげてください。小学1年生は7歳、6年生は12歳です。年齢に応じた漢字の使用や言葉遣いを気がけて下さい。"}]
 if 'user_input' not in st.session_state:
     st.session_state.user_input = ""
 if 'user_name' not in st.session_state:
@@ -65,3 +67,23 @@ if user_name != "":
     # 更新された会話のやり取りを表示
     st.write("Conversation History:")
     st.text(st.session_state.conversation_history)
+
+    if st.button("保存"):
+
+        # テンプレートとなるWordファイルの読み込み
+        template_path = 'template.docx'
+        doc = Document(template_path)
+
+        # テキストデータの挿入位置を特定してテキストを挿入
+        for paragraph in doc.paragraphs:
+            if 'PLACEHOLDER' in paragraph.text:
+                paragraph.text = paragraph.text.replace('PLACEHOLDER', st.session_state.conversation_history)
+            # フォント指定
+            for run in paragraph.runs:
+                run.font.name = 'メイリオ'  # フォントの種類
+                run.font.size = Pt(12)  # フォントサイズ
+        # 新しいWordファイルとして保存
+        output_path = f'{user_name}さん{school_year}.docx'
+        doc.save(output_path)
+
+        print(f"New Word document saved as {output_path}")
