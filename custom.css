@@ -1,0 +1,8 @@
+/* custom.css */
+body {
+    background-image: url('C:\Users\user\PycharmProjects\job_adviser_UI/robo.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.8;
+}

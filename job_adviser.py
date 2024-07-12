@@ -2,9 +2,12 @@ import streamlit as st
 from openai import OpenAI
 from docx import Document
 from docx.shared import Pt, RGBColor
-import os
+import io
 # OpenAI APIキーを設定
 api_key = ""
+
+
+
 
 st.title("AIにきいてみよう。")
 # ユーザー名の入力フォーム
@@ -19,7 +22,6 @@ if 'user_name' not in st.session_state:
     st.session_state.user_name = ""
 if 'conversation_history' not in st.session_state:
     st.session_state.conversation_history = ""
-
 if user_name != "":
     # 会話履歴を表示（最初のプロンプトをスキップ）
     for i, message in enumerate(st.session_state.messages):
@@ -82,8 +84,16 @@ if user_name != "":
             for run in paragraph.runs:
                 run.font.name = 'メイリオ'  # フォントの種類
                 run.font.size = Pt(12)  # フォントサイズ
-        # 新しいWordファイルとして保存
-        output_path = f'{user_name}さん{school_year}.docx'
-        doc.save(output_path)
 
-        print(f"New Word document saved as {output_path}")
+        # メモリバッファに保存
+        buffer = io.BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+
+        # ダウンロードボタンの表示
+        st.download_button(
+            label="ダウンロード",
+            data=buffer,
+            file_name=f'{user_name}さん.docx',
+            mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
